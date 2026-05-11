@@ -488,7 +488,7 @@ export async function handler(chatUpdate) {
                 gruppiincuieadmin: '', autolevelup: true,
                 lastclaim: 0, afk: 0, afkReason: '',
                 limit: 15000, premiumDate: -1, premiumTime: 0,
-                money: 0, joincount: 2
+                money: 0, joincount: 2, vip: false
             }
         }
 
@@ -506,6 +506,7 @@ export async function handler(chatUpdate) {
         user.gruppiincuieadmin = user.gruppiincuieadmin || ''
         user.role = user.role || 'Novizio'
         user.level = user.level || 0
+        user.vip = user.vip || false
 
 if (user.banned) {
 
@@ -583,6 +584,7 @@ if (user.banned) {
         let isOwner = isROwner || m.fromMe
         let isMods = isOwner || global.mods?.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(normalizedSender) || false
         let isPrems = isROwner || global.prems?.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(normalizedSender) || false
+        let isVip = user?.vip || isOwner || false;
 
         if (m.isGroup && chat.antimedia && !isAdmin && !isROwner && !isOwner) {
             if (['imageMessage', 'videoMessage'].includes(m.mtype)) {
@@ -599,7 +601,7 @@ if (user.banned) {
 
 if (chat.isBanned && !isOwner) return
 
-        if (m.isGroup && chat.antispam && !isAdmin && !isROwner && !isOwner) {
+        if (m.isGroup && chat.antispam && !isAdmin && !isROwner && !isOwner && !isVip) {
             const chatId = m.chat
             const userId = normalizedSender
             if (!global.spamTracker[chatId]) global.spamTracker[chatId] = {}
@@ -704,7 +706,7 @@ if (chat.isBanned && !isOwner) return
                             match, conn: this, participants: normalizedParticipants, groupMetadata,
                             user: { admin: isAdmin ? 'admin' : null },
                             bot: { admin: isBotAdmin ? 'admin' : null },
-                            isGab, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems,
+                            isGab, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, isVip,
                             chatUpdate, __dirname: ___dirname, __filename
                         })
                         if (shouldContinue) continue
@@ -783,7 +785,7 @@ if (chat.isBanned && !isOwner) return
                     break
                 }
 
-                if (m.isGroup && !isOwner && !isROwner && !isAdmin && chat.antispam) {
+                if (m.isGroup && !isOwner && !isROwner && !isAdmin && !isVip && chat.antispam) {
                     const groupData = global.groupSpam[m.chat] || (global.groupSpam[m.chat] = {
                         count: 0, firstCommandTimestamp: 0, isSuspended: false
                     })
@@ -797,15 +799,15 @@ if (chat.isBanned && !isOwner) return
                     }
                     if (groupData.count > 8) {
                         groupData.isSuspended = true
-                        await this.reply(m.chat, `Anti-spam comandi\n\nRilevati troppi comandi in un minuto, aspettate 15 secondi prima di riutilizzare i comandi.\n\nGli admin del gruppo sono esenti da questo limite.`, m).catch(e => console.error('[ERRORE]', e))
+                        await this.reply(m.chat, `Anti-spam comandi\n\nRilevati troppi comandi in un minuto, aspettate 15 secondi prima di riutilizzare i comandi.\n\nGli admin e i VIP del gruppo sono esenti da questo limite.`, m).catch(e => console.error('[ERRORE]', e))
                         setTimeout(() => { delete global.groupSpam[m.chat] }, 15000)
                         break
                     }
                 }
 
-                if (m.isGroup && chat.modoadmin && !isAdmin && !isOwner && !isROwner) break
-                if (m.isGroup && chat.antiporno && plugin.tags?.includes('nsfw') && !isAdmin && !isOwner && !isROwner) { fail('restrict', m, this); continue }
-                if (m.isGroup && chat.antiLink && plugin.tags?.includes('link') && !isAdmin && !isOwner && !isROwner) { fail('restrict', m, this); continue }
+                if (m.isGroup && chat.modoadmin && !isAdmin && !isOwner && !isROwner && !isVip) break
+                if (m.isGroup && chat.antiporno && plugin.tags?.includes('nsfw') && !isAdmin && !isOwner && !isROwner && !isVip) { fail('restrict', m, this); continue }
+                if (m.isGroup && chat.antiLink && plugin.tags?.includes('link') && !isAdmin && !isOwner && !isROwner && !isVip) { fail('restrict', m, this); continue }
                 if (settings.soloCreatore && !isROwner) break
                 if (plugin.gab && !isGab) { fail('gab', m, this); continue }
 
@@ -844,7 +846,7 @@ if (chat.isBanned && !isOwner) return
                     conn: this, participants: normalizedParticipants, groupMetadata,
                     user: { admin: isAdmin ? 'admin' : null },
                     bot: { admin: isBotAdmin ? 'admin' : null },
-                    isGab, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems,
+                    isGab, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, isVip,
                     chatUpdate, __dirname: ___dirname, __filename,
                     mentionedJid: m.mentionedJid || []
                 }
@@ -968,15 +970,15 @@ global.dfail = async (type, m, conn) => {
         gab: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐆𝐚𝐛 🕵🏻‍♂️',
         rowner: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐂𝐨-𝐎𝐰𝐧𝐞𝐫 🕵🏻‍♂️',
         owner: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐎𝐰𝐧𝐞𝐫 🕵🏻‍♂️',
-        mods: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧     𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐢 𝐌𝐨𝐝𝐞𝐫𝐚𝐭𝐨𝐫𝐢 🛡️',
-        premium: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 𝐞̀ 𝐫𝐢𝐬𝐞𝐫𝐯𝐚𝐭𝐨 𝐚𝐢 𝐏𝐫𝐞𝐦𝐢𝐮𝐦 💎',
-        group: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜  𝐦𝐚𝐧𝐝𝐨 𝐩𝐮𝐨̀ 𝐞𝐬𝐬𝐞𝐫𝐞 𝐮𝐬𝐚𝐭𝐨 𝐬𝐨𝐥𝐨 𝐧𝐞𝐢 𝐆𝐫𝐮𝐩𝐩𝐢 👥',
-        private: '𝐐𝐮𝐞𝐬𝐭𝐚 𝐟𝐮𝐧𝐳𝐢𝐨𝐧𝐞 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐢𝐧 𝐏𝐫𝐢𝐯𝐚𝐭𝐨 🔒',
-        admin: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐠𝐥𝐢 𝐀𝐝𝐦𝐢𝐧 ⚙️',
-        botAdmin: '𝐃𝐞𝐯𝐨 𝐞𝐬𝐬𝐞𝐫𝐞 𝐀𝐝𝐦𝐢𝐧 𝐩𝐞𝐫 𝐞𝐬𝐞𝐠𝐮𝐢𝐫𝐞 𝐪𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 🤖',
-        unreg: `𝐍𝐨𝐧 𝐬𝐞𝐢 𝐫𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐨/𝐚 📝\n𝐑𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢 𝐩𝐞𝐫 𝐮𝐬𝐚𝐫𝐞 𝐪𝐮𝐞𝐬𝐭𝐚 𝐟𝐮𝐧𝐳𝐢𝐨𝐧𝐞\n\n𝐅𝐨𝐫𝐦𝐚𝐭𝐨:\n𝐧𝐨𝐦𝐞 𝐞𝐭𝐚\n\n𝐄𝐬𝐞𝐦𝐩𝐢𝐨:\n.reg ${nome} ${etarandom}`,
-        restrict: '𝐐𝐮𝐞𝐬𝐭𝐚 𝐟𝐮𝐧𝐳𝐢𝐨𝐧𝐞 𝐞̀ 𝐚𝐭𝐭𝐮𝐚𝐥𝐦𝐞𝐧𝐭𝐞 𝐝𝐢𝐬𝐚𝐭𝐭𝐢𝐯𝐚𝐭𝐚 🚫',
-        disabled: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧𝐝𝐨 𝐞̀ 𝐚𝐭𝐭𝐮𝐚𝐥𝐦𝐞𝐧𝐭𝐞 𝐝𝐢𝐬𝐚𝐛𝐢𝐥𝐢𝐭𝐚𝐭𝐨 🚫'
+        mods: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦𝐚𝐧     𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐢 𝐌𝐨𝐝𝐞𝐫α𝐭𝐨𝐫𝐢 🛡️',
+        premium: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦α𝐧𝐝𝐨 𝐞̀ 𝐫𝐢𝐬𝐞𝐫𝐯α𝐭𝐨 α𝐢 𝐏𝐫𝐞𝐦𝐢𝐮𝐦 💎',
+        group: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜  𝐦α𝐧𝐝𝐨 𝐩𝐮𝐨̀ 𝐞𝐬𝐬𝐞𝐫𝐞 𝐮𝐬α𝐭𝐨 𝐬𝐨𝐥𝐨 𝐧𝐞𝐢 𝐆𝐫𝐮𝐩𝐩𝐢 👥',
+        private: '𝐐𝐮𝐞𝐬𝐭α 𝐟𝐮𝐧𝐳𝐢𝐨𝐧𝐞 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐢𝐧 𝐏𝐫𝐢𝐯α𝐭𝐨 🔒',
+        admin: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦α𝐧𝐝𝐨 𝐞̀ 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐢𝐥𝐞 𝐬𝐨𝐥𝐨 𝐩𝐞𝐫 𝐠𝐥𝐢 𝐀𝐝𝐦𝐢𝐧 ⚙️',
+        botAdmin: '𝐃𝐞𝐯𝐨 𝐞𝐬𝐬𝐞𝐫𝐞 𝐀𝐝𝐦𝐢𝐧 𝐩𝐞𝐫 𝐞𝐬𝐞𝐠𝐮𝐢𝐫𝐞 𝐪𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦α𝐧𝐝𝐨 🤖',
+        unreg: `𝐍𝐨𝐧 𝐬𝐞𝐢 𝐫𝐞𝐠𝐢𝐬𝐭𝐫α𝐭𝐨/α 📝\n𝐑𝐞𝐠𝐢𝐬𝐭𝐫α𝐭𝐢 𝐩𝐞𝐫 𝐮𝐬α𝐫𝐞 𝐪𝐮𝐞𝐬𝐭α 𝐟𝐮𝐧𝐳𝐢𝐨𝐧𝐞\n\n𝐅𝐨𝐫𝐦α𝐭𝐨:\n𝐧𝐨𝐦𝐞 𝐞𝐭α\n\n𝐄𝐬𝐞𝐦𝐩𝐢𝐨:\n.reg ${nome} ${etarandom}`,
+        restrict: '𝐐𝐮𝐞𝐬𝐭α 𝐟𝐮𝐧𝐳𝐢𝐨𝐧𝐞 𝐞̀ α𝐭𝐭𝐮α𝐥𝐦𝐞𝐧𝐭𝐞 𝐝𝐢𝐬α𝐭𝐭𝐢𝐯α𝐭α 🚫',
+        disabled: '𝐐𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐦α𝐧𝐝𝐨 𝐞̀ α𝐭𝐭𝐮α𝐥𝐦𝐞𝐧𝐭𝐞 𝐝𝐢𝐬α𝐛𝐢𝐥𝐢𝐭α𝐭𝐨 🚫'
     }[type]
     if (msg) conn.reply(m.chat, msg, m, global.rcanal).catch(e => console.error('[ERRORE] dfail:', e))
 }
