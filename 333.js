@@ -176,10 +176,12 @@ function logSystem(message, color = 'cyanBright') {
   console.log(printer(`ã 333 BOT ã ${message}`));
 }
 
-function normalizePhoneNumberInput(value = '') {
-  const digits = value.replace(/\D/g, '');
-  if (digits.length < 8 || digits.length > 15) return null;
-  return digits;
+function normalizePhoneNumberInput(value) {
+  if (typeof value !== 'string') value = String(value || '');
+  // Rimuove tutto ciò che non è un numero (inclusi +, spazi, trattini)
+  const digits = value.replace(/[^0-9]/g, '');
+  if (digits.length >= 8 && digits.length <= 16) return digits;
+  return null;
 }
 
 function generateRandomCode(length = 8) {
@@ -258,7 +260,10 @@ let rl = readline.createInterface({ input: process.stdin, output: process.stdout
 const question = (t) => {
   rl.clearLine(rl.input, 0);
   return new Promise((resolver) => {
-    rl.question(t, (r) => { rl.clearLine(rl.input, 0); resolver(r.trim()); });
+    rl.question(t, (r) => { 
+      const res = r.trim();
+      resolver(res); 
+    });
   });
 };
 
@@ -286,17 +291,21 @@ async function requestPairingCodeFlow() {
   pairingCodeRequested = true;
   try {
     let normalizedNumber;
-    if (phoneNumber) {
+    if (phoneNumber && typeof phoneNumber === 'string' && phoneNumber.length > 5) {
       normalizedNumber = normalizePhoneNumberInput(phoneNumber);
-      if (!normalizedNumber) throw new Error('Il numero configurato in global.botNumberCode non e valido');
-      phoneNumber = `+${normalizedNumber}`;
-    } else {
-      const input = await askValidatedPhoneNumber();
-      normalizedNumber = input.normalized;
+    } 
+    
+    if (!normalizedNumber) {
+      const result = await askValidatedPhoneNumber();
+      normalizedNumber = result.normalized;
       phoneNumber = `+${normalizedNumber}`;
     }
 
-    logSystem(`Avvio pairing code per ${phoneNumber}...`, 'blueBright');
+    logSystem(`Avvio pairing code per +${normalizedNumber}...`, 'blueBright');
+    
+    // Piccolo delay per assicurarsi che il socket sia pronto
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
     const pairingCode = await global.conn.requestPairingCode(normalizedNumber);
     const formattedCode = formatPairingCode(pairingCode);
 
@@ -394,6 +403,7 @@ const connectionOptions = {
     creds: state.creds,
     keys: makeCacheableSignalKeyStore(state.keys, logger),
   },
+  // Per il Pairing Code è fondamentale identificarsi come Chrome/Ubuntu
   browser: ["Ubuntu", "Chrome", "20.0.04"],
   version,
   markOnlineOnConnect: true,
@@ -447,9 +457,7 @@ global.conn = makeWASocket(connectionOptions);
 global.store.bind(global.conn);
 
 if (!hasExistingSession && pairingMode === 'code') {
-  setTimeout(async () => {
-    await requestPairingCodeFlow();
-  }, 3000);
+  requestPairingCodeFlow();
 }
 
 conn.isInit = false;
@@ -517,22 +525,22 @@ async function connectionUpdate(update) {
     if (!global.conn?.authState?.creds?.registered) pairingCodeRequested = false;
     const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
     if (reason === DisconnectReason.badSession && !global.connectionMessagesPrinted.badSession) {
-      console.log(chalk.bold.redBright(`\n[ â ï¸ ] ððð¬ð¬ð¢ð¨ð§ð ðð«ð«ðð­ð, ðð«ð«ðð­ð, ðð¥ð¢ð¦ð¢ð§ð ð¥ð ððð«ð­ðð¥ð¥ð ${global.authFile} ðð ðð¬ðð ð®ð¢ ð§ð®ð¨ð¯ðð¦ðð§ð­ð ð¥ð ð¬ððð§ð¬ð¢ð¨ð§ð.`));
+      console.log(chalk.bold.redBright(`\n[ â ï¸ ] Sessione errata, elimina la cartella ${global.authFile} e riavvia.`));
       global.connectionMessagesPrinted.badSession = true;
       process.exit(1);
     } else if (reason === DisconnectReason.loggedOut && !global.connectionMessagesPrinted.loggedOut) {
-      console.log(chalk.bold.redBright(`\n[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ðð¡ð¢ð®ð¬ð, ðð¥ð¢ð¦ð¢ð§ð ð¥ð ððð«ð­ðð¥ð¥ð ${global.authFile} ðð ðð¬ðð ð®ð¢ ð§ð®ð¨ð¯ðð¦ðð§ð­ð ð¥ð ð¬ððð§ð¬ð¢ð¨ð§ð.`));
+      console.log(chalk.bold.redBright(`\n[ â ï¸ ] Disconnesso, elimina la cartella ${global.authFile} e riavvia.`));
       global.connectionMessagesPrinted.loggedOut = true;
       process.exit(1);
     } else if (reason === DisconnectReason.connectionReplaced && !global.connectionMessagesPrinted.connectionReplaced) {
-      console.log(chalk.bold.yellowBright(`[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð¬ð¨ð¬ð­ð¢ð­ð®ð¢ð­ð, ð' ð¬ð­ðð­ð ðð©ðð«ð­ð ð®ð§'ðð¥ð­ð«ð ð§ð®ð¨ð¯ð ð¬ðð¬ð¬ð¢ð¨ð§ð. ððð« ð©ð«ð¢ð¦ð ðð¨ð¬ð ðð¢ð¬ðð¨ð§ðð­ð­ð¢ð­ð¢ ððð¥ðð§ð­ð¢ ððð¥ð ð¬ðð¬ð¬ð¢ð¨ð§ð ðð¨ð«ð«ðð§ð­ð.`));
+      console.log(chalk.bold.yellowBright(`[ â ï¸ ] Connessione sostituita, un'altra sessione è stata aperta.`));
       global.connectionMessagesPrinted.connectionReplaced = true;
       process.exit(1);
     } else if (reason === DisconnectReason.connectionLost && !global.connectionMessagesPrinted.connectionLost) {
-      console.log(chalk.bold.blueBright(`\n[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð©ðð«ð¬ð ðð¥ ð¬ðð«ð¯ðð«, ð«ð¢ðð¨ð§ð§ ðð¬ð¬ð¢ð¨ð§ð ð¢ ð§ ðð¨ð«ðð§ð­ð¢...`));
+      console.log(chalk.bold.blueBright(`\n[ â ï¸ ] Connessione persa, riconnessione in corso...`));
       global.connectionMessagesPrinted.connectionLost = true;
     } else if (reason === DisconnectReason.timedOut && !global.connectionMessagesPrinted.timedOut) {
-      console.log(chalk.bold.yellowBright(`\n[ â ï¸ ] ð ð¨ð§ð§ðð¬ðð§ð ð¬ðððð®ð­ð, ð«ð¢ðð¨ð§ð§ðð¬ð¬ ð¢ð¨ð§ð ð¢ ð§ ðð¨ð«ðð§ ð­ð¢...`));
+      console.log(chalk.bold.yellowBright(`\n[ â ï¸ ] Connessione scaduta, riconnessione in corso...`));
       global.connectionMessagesPrinted.timedOut = true;
     }
   }
