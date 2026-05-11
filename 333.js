@@ -1,6 +1,7 @@
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 
+
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
 import './config.js';
 import { createRequire } from 'module';
@@ -172,7 +173,7 @@ let successfulConnectionLogged = false;
 
 function logSystem(message, color = 'cyanBright') {
   const printer = chalk[color] || chalk.cyanBright;
-  console.log(printer(`ã 333 BOT ã ${message}`));
+  console.log(printer(`〔 333 BOT 〕 ${message}`));
 }
 
 function normalizePhoneNumberInput(value = '') {
@@ -226,7 +227,7 @@ global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.
 global.timestamp = { start: new Date };
 const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
-global.prefix = new RegExp('^[' + (opts['prefix'] || '.').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
+global.prefix = new RegExp('^[' + (opts['prefix'] || '.!-').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
 global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile('database.json'));
 global.DATABASE = global.db;
 global.loadDatabase = async function loadDatabase() {
@@ -300,7 +301,7 @@ async function requestPairingCodeFlow() {
     const pairingCode = await global.conn.requestPairingCode(normalizedNumber, randomCode);
     const formattedCode = formatPairingCode(pairingCode);
 
-    console.log(chalk.bold.white(chalk.bgBlueBright('ê°ð©¸ê± â¦â¢â« CODICE DI COLLEGAMENTO:')), chalk.bold.white(formattedCode));
+    console.log(chalk.bold.white(chalk.bgBlueBright('꒰🩸꒱ ◦•≫ CODICE DI COLLEGAMENTO:')), chalk.bold.white(formattedCode));
     logSystem('Inserisci il codice su WhatsApp > Dispositivi collegati > Collega un dispositivo.', 'greenBright');
   } catch (error) {
     pairingCodeRequested = false;
@@ -311,28 +312,28 @@ async function requestPairingCodeFlow() {
 let opzione;
 if (!pairingMode && !hasExistingSession) {
   const menu = `
-${chalk.bgBlue.white('âââââââââââââââââââââââââ')}
-${chalk.bgBlue.white('â     333 BOT 2026      â')}
-${chalk.bgBlue.white('â         V10           â')}
-${chalk.bgBlue.white('âââââââââââââââââââââââââ')}
+${chalk.bgBlue.white('┏━━━━━━━━━━━━━━━━━━━━━━━┓')}
+${chalk.bgBlue.white('┃     333 BOT 2026      ┃')}
+${chalk.bgBlue.white('┃         V10           ┃')}
+${chalk.bgBlue.white('┗━━━━━━━━━━━━━━━━━━━━━━━┛')}
 
 ${chalk.yellow('Seleziona come collegarti:')}
 
-${chalk.green('[1] ð² QR CODE')}
-${chalk.gray('    â Scansiona con la fotocamera')}
+${chalk.green('[1] 📲 QR CODE')}
+${chalk.gray('    → Scansiona con la fotocamera')}
 
-${chalk.green('[2] ð CODICE (8 caratteri)')}
-${chalk.gray('    â Codice da inserire')}
+${chalk.green('[2] 🔐 CODICE (8 caratteri)')}
+${chalk.gray('    → Codice da inserire')}
 
-${chalk.gray('ââââââââââââââââââââââââ')}
+${chalk.gray('────────────────────────')}
 
-${chalk.cyan('Scegli solo 1 o 2 â')}
+${chalk.cyan('Scegli solo 1 o 2 ↓')}
 `;
 
   opzione = await askValidatedChoice(
-    menu + '\nâ¤ ',
+    menu + '\n➤ ',
     value => /^[1-2]$/.test(value),
-    'â Inserisci solo 1 o 2, non inventarti nuovi numeri.'
+    '⛔ Inserisci solo 1 o 2, non inventarti nuovi numeri.'
   );
 
   pairingMode = opzione === '1' ? 'qr' : 'code';
@@ -489,10 +490,10 @@ async function connectionUpdate(update) {
            333 BOT                 
         CONNESSIONE QR           
 
-ð² Scansiona il QR qui sotto
-â³ Valido per ~45 secondi
+📲 Scansiona il QR qui sotto
+⏳ Valido per ~45 secondi
 
-âââââââââââââââ
+───────────────
 `));
     logSystem('Apri WhatsApp > Dispositivi collegati > Collega un dispositivo e scansiona il QR.', 'whiteBright');
     global.qrGenerated = true;
@@ -515,22 +516,22 @@ async function connectionUpdate(update) {
     if (!global.conn?.authState?.creds?.registered) pairingCodeRequested = false;
     const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
     if (reason === DisconnectReason.badSession && !global.connectionMessagesPrinted.badSession) {
-      console.log(chalk.bold.redBright(`\n[ â ï¸ ] ððð¬ð¬ð¢ð¨ð§ð ðð«ð«ðð­ð, ðð¥ð¢ð¦ð¢ð§ð ð¥ð ððð«ð­ðð¥ð¥ð ${global.authFile} ðð ðð¬ðð ð®ð¢ ð§ð®ð¨ð¯ðð¦ðð§ð­ð ð¥ð ð¬ððð§ð¬ð¢ð¨ð§ð.`));
+      console.log(chalk.bold.redBright(`\n[ ⚠️ ] 𝐒𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐞𝐫𝐫𝐚𝐭𝐚, 𝐞𝐥𝐢𝐦𝐢𝐧𝐚 𝐥𝐚 𝐜𝐚𝐫𝐭𝐞𝐥𝐥𝐚 ${global.authFile} 𝐞𝐝 𝐞𝐬𝐞𝐠𝐮𝐢 𝐧𝐮𝐨𝐯𝐚𝐦𝐞𝐧𝐭𝐞 𝐥𝐚 𝐬𝐜𝐚𝐧𝐬𝐢𝐨𝐧𝐞.`));
       global.connectionMessagesPrinted.badSession = true;
       process.exit(1);
     } else if (reason === DisconnectReason.loggedOut && !global.connectionMessagesPrinted.loggedOut) {
-      console.log(chalk.bold.redBright(`\n[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ðð¡ð¢ð®ð¬ð, ðð¥ð¢ð¦ð¢ð§ð ð¥ð ððð«ð­ðð¥ð¥ð ${global.authFile} ðð ðð¬ðð ð®ð¢ ð§ð®ð¨ð¯ðð¦ðð§ð­ð ð¥ð ð¬ððð§ð¬ð¢ð¨ð§ð.`));
+      console.log(chalk.bold.redBright(`\n[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐜𝐡𝐢𝐮𝐬𝐚, 𝐞𝐥𝐢𝐦𝐢𝐧𝐚 𝐥𝐚 𝐜𝐚𝐫𝐭𝐞𝐥𝐥𝐚 ${global.authFile} 𝐞𝐝 𝐞𝐬𝐞𝐠𝐮𝐢 𝐧𝐮𝐨𝐯𝐚𝐦𝐞𝐧𝐭𝐞 𝐥𝐚 𝐬𝐜𝐚𝐧𝐬𝐢𝐨𝐧𝐞.`));
       global.connectionMessagesPrinted.loggedOut = true;
       process.exit(1);
     } else if (reason === DisconnectReason.connectionReplaced && !global.connectionMessagesPrinted.connectionReplaced) {
-      console.log(chalk.bold.yellowBright(`[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð¬ð¨ð¬ð­ð¢ð­ð®ð¢ð­ð, ð' ð¬ð­ðð­ð ðð©ðð«ð­ð ð®ð§'ðð¥ð­ð«ð ð§ð®ð¨ð¯ð ð¬ðð¬ð¬ð¢ð¨ð§ð. ððð« ð©ð«ð¢ð¦ð ðð¨ð¬ð ðð¢ð¬ðð¨ð§ð§ðð­ð­ð¢ð­ð¢ ððð¥ð¥ð ð¬ðð¬ð¬ð¢ð¨ð§ð ðð¨ð«ð«ðð§ð­ð.`));
+      console.log(chalk.bold.yellowBright(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐞' 𝐬𝐭𝐚𝐭𝐚 𝐚𝐩𝐞𝐫𝐭𝐚 𝐮𝐧'𝐚𝐥𝐭𝐫𝐚 𝐧𝐮𝐨𝐯𝐚 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞. 𝐏𝐞𝐫 𝐩𝐫𝐢𝐦𝐚 𝐜𝐨𝐬𝐚 𝐝𝐢𝐬𝐜𝐨𝐧𝐧𝐞𝐭𝐭𝐢𝐭𝐢 𝐝𝐚𝐥𝐥𝐚 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐜𝐨𝐫𝐫𝐞𝐧𝐭𝐞.`));
       global.connectionMessagesPrinted.connectionReplaced = true;
       process.exit(1);
     } else if (reason === DisconnectReason.connectionLost && !global.connectionMessagesPrinted.connectionLost) {
-      console.log(chalk.bold.blueBright(`\n[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð©ðð«ð¬ð ðð¥ ð¬ðð«ð¯ðð«, ð«ð¢ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð¢ð§ ðð¨ð«ð¬ð¨...`));
+      console.log(chalk.bold.blueBright(`\n[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐩𝐞𝐫𝐬𝐚 𝐚𝐥 𝐬𝐞𝐫𝐯𝐞𝐫, 𝐫𝐢𝐜𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...`));
       global.connectionMessagesPrinted.connectionLost = true;
     } else if (reason === DisconnectReason.timedOut && !global.connectionMessagesPrinted.timedOut) {
-      console.log(chalk.bold.yellowBright(`\n[ â ï¸ ] ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð¬ðððð®ð­ð, ð«ð¢ðð¨ð§ð§ðð¬ð¬ð¢ð¨ð§ð ð¢ð§ ðð¨ð«ð¬ð¨...`));
+      console.log(chalk.bold.yellowBright(`\n[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐜𝐚𝐝𝐮𝐭𝐚, 𝐫𝐢𝐜𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...`));
       global.connectionMessagesPrinted.timedOut = true;
     }
   }
@@ -549,7 +550,7 @@ process.on('uncaughtException', console.error);
 
 let isInit = true;
 let handler = await import('./handler.js').catch(e => {
-    console.error('â ERRORE IMPORT HANDLER:', e)
+    console.error('❌ ERRORE IMPORT HANDLER:', e)
     process.exit(1)
 })
 
@@ -557,23 +558,23 @@ let handler = await import('./handler.js').catch(e => {
 global.reloadHandler = async function (restatConn) {
   try {
     const Handler = await import(`./handler.js?update=${Date.now()}`).catch(e => {
-      console.error('â ERRORE IMPORT HANDLER.JS:', e)
+      console.error('❌ ERRORE IMPORT HANDLER.JS:', e)
       return null
     })
     
     if (!Handler) {
-      console.error('â Handler Ã¨ null, import fallito')
+      console.error('❌ Handler è null, import fallito')
       return false
     }
     
     if (!Handler.handler) {
-      console.error('â Handler.handler Ã¨ undefined! Keys disponibili:', Object.keys(Handler))
+      console.error('❌ Handler.handler è undefined! Keys disponibili:', Object.keys(Handler))
       return false
     }
     
     if (Object.keys(Handler).length) handler = Handler
   } catch (e) { 
-    console.error('â ERRORE in reloadHandler:', e)
+    console.error('❌ ERRORE in reloadHandler:', e)
     return false
   }
 
@@ -598,8 +599,8 @@ global.reloadHandler = async function (restatConn) {
 
   conn.welcome = '@user benvenuto/a in @subject'
   conn.bye = '@user ha abbandonato il gruppo'
-  conn.spromote = '@user Ã¨ stato promosso ad amministratore'
-  conn.sdemote = '@user non Ã¨ piÃ¹ amministratore'
+  conn.spromote = '@user è stato promosso ad amministratore'
+  conn.sdemote = '@user non è più amministratore'
   conn.sIcon = 'immagine gruppo modificata'
   conn.sRevoke = 'link reimpostato, nuovo link: @revoke'
 
@@ -674,27 +675,27 @@ global.reload = async (_ev, filename) => {
   const fileExists = existsSync(filePath);
 
   if (pluginKey in global.plugins) {
-    if (fileExists) conn.logger.info(chalk.green(`â AGGIORNATO - '${pluginKey}'`));
+    if (fileExists) conn.logger.info(chalk.green(`✅ AGGIORNATO - '${pluginKey}'`));
     else {
-      conn.logger.warn(`ðï¸ FILE ELIMINATO: '${pluginKey}'`);
+      conn.logger.warn(`🗑️ FILE ELIMINATO: '${pluginKey}'`);
       delete global.plugins[pluginKey];
       global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
       return;
     }
   } else if (fileExists) {
-    conn.logger.info(`ð NUOVO PLUGIN: '${pluginKey}'`);
+    conn.logger.info(`🆕 NUOVO PLUGIN: '${pluginKey}'`);
   }
 
   if (!fileExists) return;
 
   const err = syntaxerror(fs.readFileSync(filePath), pluginKey, { sourceType: 'module', allowAwaitOutsideFunction: true });
-  if (err) conn.logger.error(`â ERRORE SINTASSI: '${pluginKey}'\n${format(err)}`);
+  if (err) conn.logger.error(`❌ ERRORE SINTASSI: '${pluginKey}'\n${format(err)}`);
   else {
     try {
       const module = (await import(`${global.__filename(filePath)}?update=${Date.now()}`));
       global.plugins[pluginKey] = module.default || module;
     } catch (e) {
-      conn.logger.error(`â ï¸ ERRORE PLUGIN: '${pluginKey}\n${format(e)}'`);
+      conn.logger.error(`⚠️ ERRORE PLUGIN: '${pluginKey}\n${format(e)}'`);
     } finally {
       global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
     }
