@@ -1,8 +1,5 @@
-Non va il pairing code via codice,aggiusta,non toccare niente altro
-
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
-
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
 import './config.js';
