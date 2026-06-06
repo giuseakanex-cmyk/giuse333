@@ -170,6 +170,7 @@ let phoneNumber = global.botNumberCode;
 const hasExistingSession = existsSync(`./${global.authFile}/creds.json`);
 let pairingMode = methodCodeQR ? 'qr' : methodCode ? 'code' : null;
 let pairingCodeRequested = false;
+let pairingCodeRequestedAt = 0;
 let lastConnectionStateLogged = null;
 let successfulConnectionLogged = false;
 
@@ -280,9 +281,12 @@ async function askValidatedPhoneNumber() {
 }
 
 async function requestPairingCodeFlow() {
-  if (pairingCodeRequested || global.conn?.authState?.creds?.registered) return;
+  const now = Date.now();
+  const pairingRequestStillValid = pairingCodeRequested && (now - pairingCodeRequestedAt < 45_000);
+  if (pairingRequestStillValid || global.conn?.authState?.creds?.registered) return;
 
   pairingCodeRequested = true;
+  pairingCodeRequestedAt = now;
   try {
     let normalizedNumber;
     if (phoneNumber) {
@@ -302,8 +306,16 @@ async function requestPairingCodeFlow() {
 
     console.log(chalk.bold.white(chalk.bgBlueBright('꒰🩸꒱ ◦•≫ CODICE DI COLLEGAMENTO:')), chalk.bold.white(formattedCode));
     logSystem('Inserisci il codice su WhatsApp > Dispositivi collegati > Collega un dispositivo.', 'greenBright');
+
+    setTimeout(() => {
+      if (!global.conn?.authState?.creds?.registered) {
+        pairingCodeRequested = false;
+        pairingCodeRequestedAt = 0;
+      }
+    }, 45_000);
   } catch (error) {
     pairingCodeRequested = false;
+    pairingCodeRequestedAt = 0;
     logSystem(`Impossibile generare il pairing code: ${error.message}`, 'redBright');
   }
 }
@@ -445,6 +457,8 @@ const connectionOptions = {
 
 global.conn = makeWASocket(connectionOptions);
 global.store.bind(global.conn);
+conn.ev.on('connection.update', connectionUpdate);
+conn.ev.on('creds.update', saveCreds);
 
 if (!hasExistingSession && pairingMode === 'code') {
   await requestPairingCodeFlow();
@@ -537,15 +551,6 @@ async function connectionUpdate(update) {
 }
 
 process.on('uncaughtException', console.error);
-
-(async () => {
-  try {
-    conn.ev.on('connection.update', connectionUpdate);
-    conn.ev.on('creds.update', saveCreds);
-  } catch (error) {
-    console.error(chalk.bold.bgRedBright(`Errore nell'avvio del bot: `, error));
-  }
-})();
 
 let isInit = true;
 let handler = await import('./handler.js').catch(e => {
