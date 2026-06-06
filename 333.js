@@ -307,10 +307,16 @@ async function requestPairingCodeFlow() {
     console.log(chalk.bold.white(chalk.bgBlueBright('꒰🩸꒱ ◦•≫ CODICE DI COLLEGAMENTO:')), chalk.bold.white(formattedCode));
     logSystem('Inserisci il codice su WhatsApp > Dispositivi collegati > Collega un dispositivo.', 'greenBright');
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (!global.conn?.authState?.creds?.registered) {
         pairingCodeRequested = false;
         pairingCodeRequestedAt = 0;
+        logSystem('Pairing code scaduto. Richiedo un nuovo codice...', 'yellowBright');
+        if (global.stopped === 'open' && pairingMode === 'code') {
+          await requestPairingCodeFlow().catch((retryError) => {
+            logSystem(`Errore nuovo pairing code: ${retryError?.message || retryError}`, 'redBright');
+          });
+        }
       }
     }, 45_000);
   } catch (error) {
@@ -521,6 +527,11 @@ async function connectionUpdate(update) {
     logSystem(`Bot collegato con successo come ${getConnectionLabel()}`, 'whiteBright');
     logSystem(`Sessione attiva: ${global.authFile} | Pairing: ${hasExistingSession ? 'sessione esistente' : pairingMode || 'automatico'}`, 'whiteBright');
 
+    if (!hasExistingSession && pairingMode === 'code' && !pairingCodeRequested && !global.conn?.authState?.creds?.registered) {
+      await requestPairingCodeFlow().catch(error => {
+        logSystem(`Errore requestPairingCodeFlow: ${error?.message || error}`, 'redBright');
+      });
+    }
   }
 
   if (connection === 'close') {
