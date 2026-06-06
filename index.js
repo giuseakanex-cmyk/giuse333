@@ -163,6 +163,7 @@ async function epicStartup() {
 
 let isRunning = false;
 let processInstance;
+let processReady = false;
 
 async function start(file) {
   if (isRunning) return;
@@ -181,7 +182,16 @@ async function start(file) {
     args: args.slice(1),
   });
 
+  processReady = false;
   processInstance = fork();
+
+  if (processInstance && typeof processInstance.isConnected === 'function') {
+    processReady = processInstance.isConnected();
+  }
+
+  processInstance.on('online', () => {
+    processReady = true;
+  });
 
   processInstance.on('message', (data) => {
     console.log('\x1b[36m[→]\x1b[0m', data);
@@ -200,6 +210,7 @@ async function start(file) {
 
   processInstance.on('exit', (_, code) => {
     isRunning = false;
+    processReady = false;
     processInstance = null;
     console.error('\n\x1b[31m✖ Errore processo [' + code + ']\x1b[0m\n');
 
@@ -221,11 +232,15 @@ async function start(file) {
       rl.on('line', (line) => {
         const trimmed = line.trim();
         if (!trimmed) return;
-        if (!processInstance || !processInstance.connected) {
+        if (!processInstance || !processReady) {
           console.log('\x1b[33mProcesso non pronto, riprova fra un attimo...\x1b[0m');
           return;
         }
-        processInstance.send(trimmed);
+        try {
+          processInstance.send(trimmed);
+        } catch (e) {
+          console.log('\x1b[33mProcesso non pronto, riprova fra un attimo...\x1b[0m');
+        }
       });
     }
   }
