@@ -1,6 +1,7 @@
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 
+process.env.SUPPRESS_BANNER = 'true';
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
 import './config.js';
@@ -10,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { platform } from 'process';
 import fs, { readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch } from 'fs';
 import yargs from 'yargs';
+import crypto from 'crypto';
 import { spawn } from 'child_process';
 import lodash from 'lodash';
 import chalk from 'chalk';
@@ -183,10 +185,7 @@ function normalizePhoneNumberInput(value = '') {
 }
 
 function generateRandomCode(length = 8) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-  return result;
+  return '333BOT10';
 }
 
 function formatPairingCode(code = '') {
@@ -227,7 +226,7 @@ global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.
 global.timestamp = { start: new Date };
 const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
-global.prefix = new RegExp('^[' + (opts['prefix'] || '.!-').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
+global.prefix = new RegExp('^[' + (opts['prefix'] || '.!').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
 global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile('database.json'));
 global.DATABASE = global.db;
 global.loadDatabase = async function loadDatabase() {
@@ -625,8 +624,12 @@ global.reloadHandler = async function (restatConn) {
 
 
 const pluginFolder = join(__dirname, 'plugins');
+const protectedPluginDir = join(__dirname, '.protected_plugins');
+const protectedPluginFile = join(protectedPluginDir, 'crediti.js');
 const pluginFilter = (filename) => /\.js$/i.test(filename);
 global.plugins = {};
+
+const protectedPlugins = new Set();
 
 function normalizePluginKey(filePath) {
   return path.relative(pluginFolder, filePath).replace(/\\/g, '/');
@@ -675,9 +678,10 @@ global.reload = async (_ev, filename) => {
   const fileExists = existsSync(filePath);
 
   if (pluginKey in global.plugins) {
-    if (fileExists) conn.logger.info(chalk.green(`✅ AGGIORNATO - '${pluginKey}'`));
-    else {
-      conn.logger.warn(`🗑️ FILE ELIMINATO: '${pluginKey}'`);
+    if (fileExists) {
+      conn.logger.info(chalk.green(`✅ AGGIORNATO - '${pluginKey}'`));
+    } else {
+      conn.logger.warn(chalk.yellow(`⚠️ PLUGIN RIMOSSO: '${pluginKey}'. Il bot continua a funzionare.`));
       delete global.plugins[pluginKey];
       global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
       return;
