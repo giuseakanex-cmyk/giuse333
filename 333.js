@@ -170,7 +170,6 @@ let phoneNumber = global.botNumberCode;
 const hasExistingSession = existsSync(`./${global.authFile}/creds.json`);
 let pairingMode = methodCodeQR ? 'qr' : methodCode ? 'code' : null;
 let pairingCodeRequested = false;
-let pairingCodeRequestedAt = 0;
 let lastConnectionStateLogged = null;
 let successfulConnectionLogged = false;
 
@@ -256,9 +255,8 @@ const { version } = await fetchLatestBaileysVersion();
 let rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
 
 const question = (t) => {
-  rl.clearLine(rl.input, 0);
   return new Promise((resolver) => {
-    rl.question(t, (r) => { rl.clearLine(rl.input, 0); resolver(r.trim()); });
+    rl.question(t, (r) => resolver(r.trim()));
   });
 };
 
@@ -273,7 +271,7 @@ async function askValidatedChoice(prompt, validator, invalidMessage) {
 
 async function askValidatedPhoneNumber() {
   while (true) {
-    const input = await question(chalk.bgBlack(chalk.bold.bgMagentaBright(`Inserisci il numero di WhatsApp.\n${chalk.bold.yellowBright("Esempio: +393471234567")}\n`)));
+    const input = await question('Inserisci il numero di WhatsApp (es. +393471234567): ');
     const normalized = normalizePhoneNumberInput(input);
     if (normalized) return { input, normalized };
     logSystem('Numero non valido. Inserisci il prefisso internazionale completo.', 'yellowBright');
@@ -281,12 +279,9 @@ async function askValidatedPhoneNumber() {
 }
 
 async function requestPairingCodeFlow() {
-  const now = Date.now();
-  const pairingRequestStillValid = pairingCodeRequested && (now - pairingCodeRequestedAt < 45_000);
-  if (pairingRequestStillValid || global.conn?.authState?.creds?.registered) return;
+  if (pairingCodeRequested || global.conn?.authState?.creds?.registered) return;
 
   pairingCodeRequested = true;
-  pairingCodeRequestedAt = now;
   try {
     let normalizedNumber;
     if (phoneNumber) {
@@ -306,22 +301,8 @@ async function requestPairingCodeFlow() {
 
     console.log(chalk.bold.white(chalk.bgBlueBright('꒰🩸꒱ ◦•≫ CODICE DI COLLEGAMENTO:')), chalk.bold.white(formattedCode));
     logSystem('Inserisci il codice su WhatsApp > Dispositivi collegati > Collega un dispositivo.', 'greenBright');
-
-    setTimeout(async () => {
-      if (!global.conn?.authState?.creds?.registered) {
-        pairingCodeRequested = false;
-        pairingCodeRequestedAt = 0;
-        logSystem('Pairing code scaduto. Richiedo un nuovo codice...', 'yellowBright');
-        if (global.stopped === 'open' && pairingMode === 'code') {
-          await requestPairingCodeFlow().catch((retryError) => {
-            logSystem(`Errore nuovo pairing code: ${retryError?.message || retryError}`, 'redBright');
-          });
-        }
-      }
-    }, 45_000);
   } catch (error) {
     pairingCodeRequested = false;
-    pairingCodeRequestedAt = 0;
     logSystem(`Impossibile generare il pairing code: ${error.message}`, 'redBright');
   }
 }
@@ -463,8 +444,6 @@ const connectionOptions = {
 
 global.conn = makeWASocket(connectionOptions);
 global.store.bind(global.conn);
-conn.ev.on('connection.update', connectionUpdate);
-conn.ev.on('creds.update', saveCreds);
 
 if (!hasExistingSession && pairingMode === 'code') {
   await requestPairingCodeFlow();
@@ -527,11 +506,6 @@ async function connectionUpdate(update) {
     logSystem(`Bot collegato con successo come ${getConnectionLabel()}`, 'whiteBright');
     logSystem(`Sessione attiva: ${global.authFile} | Pairing: ${hasExistingSession ? 'sessione esistente' : pairingMode || 'automatico'}`, 'whiteBright');
 
-    if (!hasExistingSession && pairingMode === 'code' && !pairingCodeRequested && !global.conn?.authState?.creds?.registered) {
-      await requestPairingCodeFlow().catch(error => {
-        logSystem(`Errore requestPairingCodeFlow: ${error?.message || error}`, 'redBright');
-      });
-    }
   }
 
   if (connection === 'close') {
@@ -562,6 +536,15 @@ async function connectionUpdate(update) {
 }
 
 process.on('uncaughtException', console.error);
+
+(async () => {
+  try {
+    conn.ev.on('connection.update', connectionUpdate);
+    conn.ev.on('creds.update', saveCreds);
+  } catch (error) {
+    console.error(chalk.bold.bgRedBright(`Errore nell'avvio del bot: `, error));
+  }
+})();
 
 let isInit = true;
 let handler = await import('./handler.js').catch(e => {
