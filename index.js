@@ -7,6 +7,8 @@ import { createInterface } from 'readline';
 import yargs from 'yargs';
 import { execSync } from 'child_process';
 
+process.env.SUPPRESS_BANNER = 'true';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(__dirname);
 
@@ -131,10 +133,10 @@ async function epicStartup() {
   await sleep(400);
   
   console.log('\n');
-  await typeWriter('                    Ultimo Aggiornamento: 21/05/2026', 40, '\x1b[33m');
+  await typeWriter('                     Ultimo Aggiornamento: 21/05/2026', 40, '\x1b[33m');
   
   console.log('\n');
-  await typeWriter('                   Edit by Gab, Lucifero & 333 Staff', 35, '\x1b[36m');
+  await typeWriter('                    Edit by Gab, Lucifero & 333 Staff', 35, '\x1b[36m');
   
   console.log('\n\n');
   console.log('\x1b[90m' + '━'.repeat(70) + '\x1b[0m');
@@ -160,6 +162,7 @@ async function epicStartup() {
 }
 
 let isRunning = false;
+let processInstance;
 
 async function start(file) {
   if (isRunning) return;
@@ -178,7 +181,7 @@ async function start(file) {
     args: args.slice(1),
   });
 
-  let processInstance = fork();
+  processInstance = fork();
 
   processInstance.on('message', (data) => {
     console.log('\x1b[36m[→]\x1b[0m', data);
@@ -197,6 +200,7 @@ async function start(file) {
 
   processInstance.on('exit', (_, code) => {
     isRunning = false;
+    processInstance = null;
     console.error('\n\x1b[31m✖ Errore processo [' + code + ']\x1b[0m\n');
 
     if (code !== 0) {
@@ -215,7 +219,13 @@ async function start(file) {
   if (!opts['test']) {
     if (!rl.listenerCount('line')) {
       rl.on('line', (line) => {
-        processInstance.send(line.trim());
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        if (!processInstance || !processInstance.connected) {
+          console.log('\x1b[33mProcesso non pronto, riprova fra un attimo...\x1b[0m');
+          return;
+        }
+        processInstance.send(trimmed);
       });
     }
   }
