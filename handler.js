@@ -236,6 +236,22 @@ export async function participantsUpdate({ id, participants, action }) {
     }
 }
 
+/* =========================================================================
+   FILLER EXPORTS: Create stubs per evitare errori .bind() in based.js
+   ========================================================================= */
+export async function groupsUpdate(settingUpdate) {
+    // Gestito in linea tramite l'evento conn.ev.on('groups.update') sopra
+}
+
+export async function deleteUpdate(message) {
+    // Stub di sicurezza per basato.js
+}
+
+export async function presenceUpdate(presenceUpdate) {
+    // Stub di sicurezza per basato.js
+}
+/* ========================================================================= */
+
 export async function handler(chatUpdate) {
     this.msgqueque = this.msgqueque || []
     this.uptime = this.uptime || Date.now()
@@ -826,7 +842,7 @@ global.dfail = async (type, m, conn) => {
         group:    '👥  𝐍𝐄𝐈 𝐆𝐑𝐔𝐏𝐏𝐈\n╰➤ Il rituale deve essere consumato all\'interno di una chat di gruppo.',
         private:  '📩 𝐒𝐎𝐋𝐎 𝐈𝐍 𝐏𝐑𝐈𝐕𝐀𝐓𝐎 \n╰➤ Questa interazione è confinata esclusivamente in chat privata.',
         admin:    '🛠️ 𝐒𝐎𝐋𝐎 𝐈 𝐏𝐑𝐄𝐒𝐂𝐄𝐋𝐓𝐈 𝐒𝐅𝐈𝐆𝐀𝐓𝐎\n╰➤ Devi essere Amministratore del gruppo per imporre questo comando.',
-        botAdmin: '🤖 𝐈𝐋 𝐁𝐎𝐓 𝐍𝐎𝐍 È 𝐀𝐃𝐌𝐈𝐍 𝐅𝐑𝐀\n╰➤ Concedimi i privilegi di Amministratore per eseguire l\'operazione.',
+        botAdmin: '🤖 𝐈𝐋 𝐁𝐎𝐓 𝐍𝐎𝐍 È 𝐀𝐃𝐌𝐈𝐍 𝐅𝐑𝐀\n╰➤ Concedimi i privileges di Amministratore per eseguire l\'operazione.',
         restrict: '🚫 𝐅𝐔𝐍𝐙𝐈𝐎𝐍𝐄 𝐂𝐎𝐍 𝐋𝐔𝐂𝐂𝐇𝐄𝐓𝐓𝐎\n╰➤ Questa risorsa è stata sigillata globalmente.',
         disabled: '⛔ È 𝐃𝐈𝐒𝐀𝐓𝐓𝐈𝐕𝐀𝐓𝐎\n╰➤ L\'algoritmo di questo comando è stato disattivato dal nucleo.'
     }[type]
