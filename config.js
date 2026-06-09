@@ -1,78 +1,84 @@
-//Codice di config.js
-
-import { watchFile, unwatchFile } from 'fs'
+import { watchFile } from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
 import chalk from 'chalk'
 import fs from 'fs'
-import * as cheerio from 'cheerio'
-import fetch from 'node-fetch'
-import axios from 'axios'
-import moment from 'moment-timezone'
-import NodeCache from 'node-cache'
-
 const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
-const moduleCache = new NodeCache({ stdTTL: 300 });
 
-	
-global.gab = ['393882471151',]
+/*╭━━━⚡ 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 ⚡━━━╮*/
+
+global.prefisso = '.'
+global.sam = ['393780560229']
 global.owner = [
-  ['393780506624', 'Lucifero', true],
-  ['393892430108', 'Gab', true],
+  ['393780560229', 'luxifer', true],  
+  ['393291944932', 'The Danger Core', true], // Nuovo Owner Aggiunto
+  ['9647802910837', 'Zak', true], 
+  ['4915511934253', 'Tom', true], 
 ]
+global.mods = ['212781816909', '390935931875']
+global.prems = ['212781816909', '390935931875']
 
+/*╰━━━━━━━━━━━━━━━━━━━━╯*/
 
-global.nomepack = '333'
-global.nomebot = ' ꙰ 𝟥𝟥𝟥 𝔹𝕆𝕋  ꙰'
-global.wm = '333'
-global.autore = 'gab'
-global.dev = 'lucifero'
-global.testobot = `333`
+/*╭━━━☠️ INFO BOT ☠️━━━╮*/
+
+global.nomepack = '𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 ⚡'
+global.nomebot = '⚡ 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 ⚡'
+global.wm = '⚡ 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 ⚡'
+global.autore = 'SⒶ𝔪'
+global.dev = '⋆｡˚- SⒶ𝔪'
+global.testobot = `☠️ 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 ☠️`
 global.versione = pkg.version
-global.errore = '⚠️ *Errore inatteso!* Usa il comando `.ticket` per avvisare gli owner.'
+global.errore = '☠️ *Rituale fallito!* Usa il comando `.segnala <errore>` per notificare il collasso del sistema.'
 
+/*╰━━━━━━━━━━━━━━━━━━━╯*/
 
-global.repobot = 'https://github.com/GabWT333/Gab333'
-global.canale = 'https://whatsapp.com/channel/0029VauhQviCsU9Ibrwlkb0h'
-global.gruppo = 'https://chat.whatsapp.com/KqBeKHgrc53BNdvuPTKLTL' 
+/*╭━━━🕷️ LINK SYSTEM 🌐━━━╮*/
 
+global.repobot = 'https://github.com/realvare/varebot'
+global.gruppo = 'https://chat.whatsapp.com/bysamakavare'
+global.canale = 'https://whatsapp.com/channel/0029VbB41Sa1Hsq1JhsC1Z1z'
+global.insta = 'https://www.instagram.com/samakavare'
 
-global.cheerio = cheerio
-global.fs = fs
-global.fetch = fetch
-global.axios = axios
-global.moment = moment
+/*╰━━━━━━━━━━━━━━━━━━━━━╯*/
 
+/*⭑⭒━━━✦❘🗝️ API KEYS 🌍༺❘✦━━━⭒⭑*/
 
-global.APIKeys = { 
-    spotifyclientid: '333',
-    spotifysecret: '333',
-    browserless: '333',
-    screenshotone: '333',
-    screenshotone_default: '333',
-    tmdb: '333',
-    gemini:'333',
-    ocrspace: '333',
-    assemblyai: '333',
-    google: '333',
-    googlex: '333',
-    googleCX: '333',
-    genius: '333',
-    unsplash: '333',
-    removebg: 'FEx4CYmYN1QRQWD1mbZp87jV',
-    openrouter: '333',
-    lastfm: '36f859a1fc4121e7f0e931806507d5f9',
+// Le chiavi sono rimaste invariate come richiesto
+global.APIKeys = {
+    spotifyclientid: 'varebot',
+    spotifysecret: 'varebot',
+    browserless: 'varebot',
+    tmdb: 'varebot',
+    ocrspace: 'jjjsheu',
+    assemblyai: 'varebot',
+    google: 'varebot',
+    googleCX: 'varebot',
+    genius: 'varebot',
+    removebg: 'varebot',
+    openrouter: 'varebot',
+    sightengine_user: 'varebot',
+    sightengine_secret: 'varebot',
+    lastfm: 'varebot',
 }
 
+/*╭━━━🩸 SISTEMA XP/EURO 💸━━━╮*/
+
+global.multiplier = 1
+
+/*╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯*/
+
+/*╭━━━📦 SYSTEM RELOAD 📦━━━╮*/
 
 let filePath = fileURLToPath(import.meta.url)
 let fileUrl = pathToFileURL(filePath).href
+
 const reloadConfig = async () => {
-  const cached = moduleCache.get(fileUrl);
-  if (cached) return cached;
-  unwatchFile(filePath)
-  console.log(chalk.bgHex('#ff0000')(chalk.white.bold("File: 'config.js' Aggiornato")))
-  const module = await import(`${fileUrl}?update=${Date.now()}`)
-  moduleCache.set(fileUrl, module, { ttl: 300 });
-  return module;
+  console.log(chalk.bgHex('#b91c1c')(chalk.white.bold(" ⚡ [DANGER SYSTEM] File: 'config.js' Aggiornato ed Iniettato Correttamente ")))
+  try {
+    await import(`${fileUrl}?update=${Date.now()}`)
+  } catch (e) {
+    console.error('💀 Errore fatale nel reload di config.js:', e)
+  }
 }
+
 watchFile(filePath, reloadConfig)
