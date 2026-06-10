@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import fetch from 'node-fetch'
 
 let handler = async (m, { conn, isOwner, isAdmin }) => {
     if (!m.isGroup && !isOwner) return; 
@@ -35,38 +34,27 @@ let handler = async (m, { conn, isOwner, isAdmin }) => {
 
         let finalCount = deletedFiles > 0 ? deletedFiles : Math.floor(Math.random() * 200) + 500;
         
-        // Il testo del messaggio DS originale è rimasto rigorosamente invariato
+        // Il testo del messaggio DS originale rimane rigorosamente invariato
         let text = `✅ 𝐄𝐥𝐢𝐦𝐢𝐧𝐚𝐭𝐢 ${finalCount} 𝐟𝐢𝐥𝐞 𝐝𝐢 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞.`.trim()
 
-        let profilePicture;
-        try { 
-            profilePicture = await conn.profilePictureUrl(conn.user.jid, 'image'); 
-        } catch (e) { 
-            profilePicture = 'https://files.catbox.moe/pyp87f.jpg'; 
+        // Configurazione del messaggio Fake Contact +0 (Stile Danger Bot)
+        const fakeMsg = {
+            key: {
+                participants: "0@s.whatsapp.net",
+                fromMe: false,
+                id: "DangerClearCore"
+            },
+            message: {
+                contactMessage: {
+                    displayName: `𝐓𝐇𝐄 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 • +0`,
+                    vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Danger;Bot;;;\nFN:𝐓𝐇𝐄 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 • +0\nitem1.TEL;waid=0:0\nitem1.X-ABLabel:DangerCore\nEND:VCARD`
+                }
+            },
+            participant: "0@s.whatsapp.net"
         }
 
-        const getBuffer = async (url) => {
-            try { 
-                const res = await fetch(url); 
-                return Buffer.from(await res.arrayBuffer()); 
-            } catch (e) { return null; }
-        };
-        let imageBuffer = await getBuffer(profilePicture);
-
-        await conn.sendMessage(m.chat, { 
-            text: text,
-            contextInfo: {
-                // Rimosso completamente l'inoltro del canale (isForwarded, forwardingScore, forwardedNewsletterMessageInfo)
-                externalAdReply: {
-                    title: '𝐂𝐥𝐞𝐚𝐫𝐞𝐝 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥𝐥𝐲 ✅', 
-                    body: '𝐓𝐇𝐄 𝐃𝐀𝐍𝐆𝐄𝐑 𝐁𝐎𝐓 • +0', // Sostituito New Era con The Danger Bot e impostato contatto +0
-                    thumbnail: imageBuffer,
-                    mediaType: 1, 
-                    renderLargerThumbnail: false,
-                    sourceUrl: null
-                }
-            }
-        }, { quoted: m })
+        // Invio del testo pulito senza externalAdReply, usando il fake contatto +0 come citato
+        await conn.sendMessage(m.chat, { text: text }, { quoted: fakeMsg })
         
     } catch (err) {
         console.error(err)
