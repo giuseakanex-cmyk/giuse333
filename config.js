@@ -10,8 +10,8 @@ global.prefisso = '.'
 global.sam = ['393780560229']
 global.owner = [
   ['393780560229', 'luxifer', true],  
-  ['393291944932', 'The Danger Core', true], // Nuovo Owner Aggiunto
-  ['9647802910837', 'Zak', true], 
+  ['393291944932', 'The Danger Core', true],
+  ['393780306787', 'Zak', true], 
   ['4915511934253', 'Tom', true], 
 ]
 global.mods = ['212781816909', '390935931875']
