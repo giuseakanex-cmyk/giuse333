@@ -1,4 +1,4 @@
-```javascript
+
 import path from 'path'
 
 // Pulisce chirurgicamente i JID dai caratteri invisibili di WhatsApp/iOS
@@ -173,4 +173,4 @@ handler.group = true
 
 export default handler
 
-```
+
