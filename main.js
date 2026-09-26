@@ -711,7 +711,7 @@ async function sendGroupGoodbye(sock, jid, participants = []) {
     '',
     `> Membri rimasti: *${participantsCount}*.`,
     '',
-    '✦ Ci mancherai! 🚶‍♂️💨'
+    '✦ Ci mancherai,forse 🚶‍♂️💨'
   ].join('\n');
 
   try {
@@ -841,13 +841,13 @@ async function checkAndSendRestartNotification(sock) {
     if (data && data.jid) {
       const mainPrefix = getPrefixes()[0] || '.';
       const buttons = [
-        { buttonId: `${mainPrefix}riavvia`, buttonText: { displayText: '🔄 Riavvia' }, type: 1 },
+        { buttonId: `${mainPrefix}riavvia`, buttonText: { displayText: '🔄 Riavvia di nuovo' }, type: 1 },
         { buttonId: `${mainPrefix}ping`, buttonText: { displayText: '🏓 Ping' }, type: 1 }
       ];
 
       await sock.sendMessage(data.jid, {
-        text: '⚡ *Zushi Riavviato con Successo!*',
-        footer: 'Zushi Bot ⚡',
+        text:  '*Bot riavviato correttamente ✅,puoi tornare ad utilizzarlo!*',
+        footer: 'Zushi',
         buttons,
         headerType: 1
       });
